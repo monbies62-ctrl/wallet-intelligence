@@ -1,5 +1,7 @@
 # 🔍 Wallet Intelligence Dashboard
 
+> **Live Demo:** https://monbies62-ctrl.github.io/wallet-intelligence/
+
 Real-time wallet tracking, whale monitoring, and smart money analytics powered by AI.
 
 ## Features
