@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Intelligence — Onchain Analytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #050510;
+            --surface: #0f0f1a;
+            --border: #1a1a2e;
+            --text: #e8e8f0;
+            --muted: #6b6b80;
+            --cyan: #06b6d4;
+            --blue: #3b82f6;
+            --green: #10b981;
+            --red: #ef4444;
+            --yellow: #f59e0b;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Nav */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--cyan), var(--blue));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--text); }
+
+        /* Hero */
+        .hero {
+            padding: 80px 32px 60px;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(6,182,212,0.1);
+            color: var(--cyan);
+            border: 1px solid rgba(6,182,212,0.2);
+            margin-bottom: 24px;
+        }
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: blink 2s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .hero h1 {
+            font-size: 52px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--cyan), var(--blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            font-size: 17px;
+            color: var(--muted);
+            max-width: 560px;
+            margin: 0 auto 32px;
+            line-height: 1.7;
+        }
+        .hero-btns {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--cyan), var(--blue));
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(6,182,212,0.25);
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-ghost:hover {
+            border-color: var(--cyan);
+        }
+
+        /* Terminal Preview */
+        .terminal-section {
+            max-width: 700px;
+            margin: 0 auto 80px;
+            padding: 0 32px;
+        }
+        .terminal {
+            background: #0a0a14;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #0d0d18;
+            border-bottom: 1px solid var(--border);
+        }
+        .terminal-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .terminal-dot.red { background: #ff5f57; }
+        .terminal-dot.yellow { background: #febc2e; }
+        .terminal-dot.green { background: #28c840; }
+        .terminal-title {
+            font-size: 12px;
+            color: var(--muted);
+            margin-left: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .terminal-body {
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+        .t-prompt { color: var(--cyan); }
+        .t-cmd { color: var(--text); }
+        .t-comment { color: #3a3a50; }
+        .t-output { color: var(--muted); }
+        .t-highlight { color: var(--green); }
+        .t-warn { color: var(--yellow); }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            max-width: 1100px;
+            margin: 0 auto 80px;
+            padding: 0 32px;
+        }
+        .feat {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+        .feat:hover {
+            border-color: rgba(6,182,212,0.4);
+            transform: translateY(-2px);
+        }
+        .feat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+        .feat-icon.cyan { background: rgba(6,182,212,0.1); }
+        .feat-icon.blue { background: rgba(59,130,246,0.1); }
+        .feat-icon.green { background: rgba(16,185,129,0.1); }
+        .feat-icon.yellow { background: rgba(245,158,11,0.1); }
+        .feat-icon.red { background: rgba(239,68,68,0.1); }
+        .feat h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .feat p {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* Live Feed Demo */
+        .feed-section {
+            max-width: 700px;
+            margin: 0 auto 80px;
+            padding: 0 32px;
+        }
+        .feed-section h2 {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .feed {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .feed-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .feed-live {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--green);
+        }
+        .feed-live .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: blink 2s infinite;
+        }
+        .feed-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .feed-item:last-child { border-bottom: none; }
+        .feed-chain {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .feed-chain.eth { background: rgba(98,126,234,0.15); color: #627eea; }
+        .feed-chain.base { background: rgba(59,130,246,0.15); color: #3b82f6; }
+        .feed-chain.arb { background: rgba(40,160,240,0.15); color: #28a0f0; }
+        .feed-chain.sol { background: rgba(153,69,255,0.15); color: #9945ff; }
+        .feed-addr {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--muted);
+            font-size: 12px;
+        }
+        .feed-amount {
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .feed-amount.large { color: var(--yellow); }
+        .feed-time {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* Chains */
+        .chains {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            padding: 40px 32px;
+            flex-wrap: wrap;
+        }
+        .chain {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+        .chain-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* API */
+        .api-section {
+            max-width: 800px;
+            margin: 0 auto 80px;
+            padding: 0 32px;
+        }
+        .api-section h2 {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .api-table th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+        }
+        .api-table td {
+            padding: 14px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+        }
+        .api-method {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .api-method.get { background: rgba(16,185,129,0.15); color: var(--green); }
+        .api-method.post { background: rgba(59,130,246,0.15); color: var(--blue); }
+        .api-method.ws { background: rgba(245,158,11,0.15); color: var(--yellow); }
+        .api-path {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--cyan);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 32px;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--muted);
+        }
+        footer a {
+            color: var(--cyan);
+            text-decoration: none;
+        }
+
+        @media (max-width: 640px) {
+            .hero h1 { font-size: 32px; }
+            .features { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            <div class="logo-icon">🔍</div>
+            Wallet Intelligence
+        </div>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#api">API</a>
+            <a href="https://github.com/monbies62-ctrl/wallet-intelligence">GitHub</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-badge"><div class="dot"></div> Real-time onchain analytics</div>
+        <h1>Track wallets.<br><span>Spot whales.</span><br>Analyze smart money.</h1>
+        <p>Real-time multi-chain wallet tracking, whale alerts, and AI-powered transaction classification. One API for all your onchain intelligence needs.</p>
+        <div class="hero-btns">
+            <a href="https://github.com/monbies62-ctrl/wallet-intelligence" class="btn btn-primary">⭐ Star on GitHub</a>
+            <a href="#api" class="btn btn-ghost">📖 API Docs</a>
+        </div>
+    </section>
+
+    <section class="terminal-section">
+        <div class="terminal">
+            <div class="terminal-header">
+                <div class="terminal-dot red"></div>
+                <div class="terminal-dot yellow"></div>
+                <div class="terminal-dot green"></div>
+                <span class="terminal-title">wallet-intelligence</span>
+            </div>
+            <div class="terminal-body">
+                <div><span class="t-prompt">$</span> <span class="t-cmd">pip install wallet-intelligence</span></div>
+                <div><span class="t-output">Successfully installed wallet-intelligence-0.1.0</span></div>
+                <br>
+                <div><span class="t-prompt">$</span> <span class="t-cmd">wallet-intel serve --port 8080</span></div>
+                <div><span class="t-highlight">✓</span> <span class="t-output">Connected to Ethereum RPC</span></div>
+                <div><span class="t-highlight">✓</span> <span class="t-output">Connected to Solana RPC</span></div>
+                <div><span class="t-highlight">✓</span> <span class="t-output">Database initialized</span></div>
+                <div><span class="t-highlight">✓</span> <span class="t-output">WebSocket server running on /ws/live</span></div>
+                <div><span class="t-warn">⚡</span> <span class="t-output">Uvicorn running on http://0.0.0.0:8080</span></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="feat">
+            <div class="feat-icon cyan">🔗</div>
+            <h3>Multi-Chain Monitoring</h3>
+            <p>Track wallets across Ethereum, Base, Arbitrum, Polygon, and Solana simultaneously. Unified API for all chains.</p>
+        </div>
+        <div class="feat">
+            <div class="feat-icon yellow">🐋</div>
+            <h3>Whale Alerts</h3>
+            <p>Get instant notifications when large transactions happen. Configurable thresholds per chain and wallet.</p>
+        </div>
+        <div class="feat">
+            <div class="feat-icon blue">🧠</div>
+            <h3>AI Classification</h3>
+            <p>LLM-powered transaction analysis. Automatically categorizes swaps, lends, bridges, NFT trades, and more.</p>
+        </div>
+        <div class="feat">
+            <div class="feat-icon green">📊</div>
+            <h3>P&L Tracking</h3>
+            <p>Track profit/loss per wallet with realized and unrealized gains. Win rate and trade history analysis.</p>
+        </div>
+        <div class="feat">
+            <div class="feat-icon red">💰</div>
+            <h3>Smart Money Detection</h3>
+            <p>Identify profitable wallets, funds, and traders. Track their movements for alpha signals.</p>
+        </div>
+        <div class="feat">
+            <div class="feat-icon cyan">⚡</div>
+            <h3>Real-time WebSocket</h3>
+            <p>Live transaction stream via WebSocket. Build real-time dashboards and alert systems.</p>
+        </div>
+    </section>
+
+    <section class="feed-section">
+        <h2>Live Transaction Feed</h2>
+        <div class="feed">
+            <div class="feed-header">
+                <h3>Recent Whale Transactions</h3>
+                <div class="feed-live"><div class="dot"></div> Streaming</div>
+            </div>
+            <div id="feed-body">
+                <div class="feed-item">
+                    <span class="feed-chain eth">ETH</span>
+                    <span class="feed-addr">0x1234...5678</span>
+                    <span>→</span>
+                    <span class="feed-addr">0xabcd...ef01</span>
+                    <span class="feed-amount large">$2,450,000</span>
+                    <span class="feed-time">2s ago</span>
+                </div>
+                <div class="feed-item">
+                    <span class="feed-chain sol">SOL</span>
+                    <span class="feed-addr">7xKXt...mR3d</span>
+                    <span>→</span>
+                    <span class="feed-addr">3FjB8...nQ2w</span>
+                    <span class="feed-amount large">$890,000</span>
+                    <span class="feed-time">8s ago</span>
+                </div>
+                <div class="feed-item">
+                    <span class="feed-chain base">BASE</span>
+                    <span class="feed-addr">0x9876...5432</span>
+                    <span>→</span>
+                    <span class="feed-addr">0xfedc...ba98</span>
+                    <span class="feed-amount">$345,000</span>
+                    <span class="feed-time">15s ago</span>
+                </div>
+                <div class="feed-item">
+                    <span class="feed-chain arb">ARB</span>
+                    <span class="feed-addr">0x5555...9999</span>
+                    <span>→</span>
+                    <span class="feed-addr">0x1111...3333</span>
+                    <span class="feed-amount">$1,200,000</span>
+                    <span class="feed-time">23s ago</span>
+                </div>
+                <div class="feed-item">
+                    <span class="feed-chain eth">ETH</span>
+                    <span class="feed-addr">0xdead...beef</span>
+                    <span>→</span>
+                    <span class="feed-addr">0xcafe...babe</span>
+                    <span class="feed-amount large">$5,800,000</span>
+                    <span class="feed-time">31s ago</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="chains">
+        <div class="chain"><div class="chain-dot" style="background:#627eea"></div> Ethereum</div>
+        <div class="chain"><div class="chain-dot" style="background:#3b82f6"></div> Base</div>
+        <div class="chain"><div class="chain-dot" style="background:#28a0f0"></div> Arbitrum</div>
+        <div class="chain"><div class="chain-dot" style="background:#8247e5"></div> Polygon</div>
+        <div class="chain"><div class="chain-dot" style="background:#9945ff"></div> Solana</div>
+    </div>
+
+    <section class="api-section" id="api">
+        <h2>API Endpoints</h2>
+        <table class="api-table">
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="api-method get">GET</span></td>
+                    <td><span class="api-path">/api/v1/wallets</span></td>
+                    <td>List tracked wallets</td>
+                </tr>
+                <tr>
+                    <td><span class="api-method post">POST</span></td>
+                    <td><span class="api-path">/api/v1/wallets</span></td>
+                    <td>Add wallet to track</td>
+                </tr>
+                <tr>
+                    <td><span class="api-method get">GET</span></td>
+                    <td><span class="api-path">/api/v1/wallets/{addr}/pnl</span></td>
+                    <td>P&L analysis</td>
+                </tr>
+                <tr>
+                    <td><span class="api-method get">GET</span></td>
+                    <td><span class="api-path">/api/v1/whales</span></td>
+                    <td>Whale transactions</td>
+                </tr>
+                <tr>
+                    <td><span class="api-method get">GET</span></td>
+                    <td><span class="api-path">/api/v1/analytics/smart-money</span></td>
+                    <td>Smart money wallets</td>
+                </tr>
+                <tr>
+                    <td><span class="api-method post">POST</span></td>
+                    <td><span class="api-path">/api/v1/alerts</span></td>
+                    <td>Create alert rule</td>
+                </tr>
+                <tr>
+                    <td><span class="api-method ws">WS</span></td>
+                    <td><span class="api-path">/ws/live</span></td>
+                    <td>Real-time feed</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <footer>
+        Wallet Intelligence &copy; 2024 — MIT License · <a href="https://github.com/monbies62-ctrl/wallet-intelligence">GitHub</a>
+    </footer>
+
+    <script>
+        // Simulate live feed updates
+        const chains = ['ETH', 'SOL', 'BASE', 'ARB'];
+        const chainClass = { ETH: 'eth', SOL: 'sol', BASE: 'base', ARB: 'arb' };
+        const amounts = ['$125,000', '$450,000', '$2,300,000', '$89,000', '$1,500,000', '$670,000', '$3,200,000', '$45,000'];
+
+        function randomAddr() {
+            const hex = '0123456789abcdef';
+            let addr = '0x';
+            for (let i = 0; i < 4; i++) addr += hex[Math.floor(Math.random() * 16)];
+            addr += '...';
+            for (let i = 0; i < 4; i++) addr += hex[Math.floor(Math.random() * 16)];
+            return addr;
+        }
+
+        function addFeedItem() {
+            const body = document.getElementById('feed-body');
+            const chain = chains[Math.floor(Math.random() * chains.length)];
+            const amount = amounts[Math.floor(Math.random() * amounts.length)];
+            const isLarge = amount.includes(',') && parseInt(amount.replace(/[$,]/g, '')) > 500000;
+
+            const item = document.createElement('div');
+            item.className = 'feed-item';
+            item.innerHTML = `
+                <span class="feed-chain ${chainClass[chain]}">${chain}</span>
+                <span class="feed-addr">${randomAddr()}</span>
+                <span>→</span>
+                <span class="feed-addr">${randomAddr()}</span>
+                <span class="feed-amount ${isLarge ? 'large' : ''}">${amount}</span>
+                <span class="feed-time">just now</span>
+            `;
+
+            body.insertBefore(item, body.firstChild);
+            if (body.children.length > 8) body.removeChild(body.lastChild);
+
+            // Update timestamps
+            const items = body.querySelectorAll('.feed-time');
+            items.forEach((el, i) => {
+                if (i > 0) el.textContent = (i * 3 + Math.floor(Math.random() * 5)) + 's ago';
+            });
+        }
+
+        setInterval(addFeedItem, 4000);
+    </script>
+</body>
+</html>
